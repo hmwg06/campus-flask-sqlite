@@ -1,0 +1,1 @@
+"""Campus management application."""
