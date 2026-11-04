@@ -1,1 +1,12 @@
-{% extends 'base.html' %}{% block content %}<section class="panel error-page"><div class="eyebrow">LỖI {{ error.code }}</div><h1>{{ 'Bạn không có quyền truy cập' if error.code==403 else 'Không tìm thấy nội dung' if error.code==404 else 'Tệp tải lên quá lớn' if error.code==413 else 'Yêu cầu không hợp lệ' }}</h1><p>{{ 'Vui lòng chọn tệp nhỏ hơn 16 MB.' if error.code==413 else error.description if error.code==400 else 'Kiểm tra đường dẫn hoặc trở về trang tổng quan để tiếp tục.' }}</p><a class="btn primary" href="/">Về trang tổng quan</a></section>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+    <section class="panel error-page">
+        <div class="eyebrow">
+            LỖI
+            {{ error.code }}
+        </div>
+        <h1>{{ 'Bạn không có quyền truy cập' if error.code==403 else 'Không tìm thấy nội dung' if error.code==404 else 'Tệp tải lên quá lớn' if error.code==413 else 'Yêu cầu không hợp lệ' }}</h1>
+        <p>{{ 'Vui lòng chọn tệp nhỏ hơn 16 MB.' if error.code==413 else error.description if error.code==400 else 'Kiểm tra đường dẫn hoặc trở về trang tổng quan để tiếp tục.' }}</p>
+        <a class="btn primary" href="/">Về trang tổng quan</a>
+    </section>
+{% endblock %}

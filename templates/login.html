@@ -1,2 +1,50 @@
-{% extends 'base.html' %}{% from 'macros.html' import csrf with context %}
-{% block content %}<div class="auth-layout"><section class="auth-art"><a class="brand" href="/"><span class="brand-icon">C</span><span>campus</span></a><div class="auth-copy"><span class="pill">MỘT KHÔNG GIAN · NHIỀU KẾT NỐI</span><h1>Kết nối tri thức.<br>Kiến tạo tương lai.</h1><p>Quản lý đào tạo, đồng hành cùng người học và chia sẻ tài nguyên trong một hệ thống thống nhất.</p><div class="auth-modules"><span>01 · Sinh viên</span><span>02 · Đào tạo</span><span>03 · Học liệu</span><span>04 · Báo cáo</span><span>05 · Phân quyền</span></div></div><small>Campus / Hệ thống quản lý giáo dục</small></section><section class="auth-form"><div><div class="eyebrow">CHÀO MỪNG ĐẾN VỚI CAMPUS</div><h2>{{ 'Khởi tạo hệ thống' if setup else 'Đăng nhập tài khoản' }}</h2><p>{{ 'Tạo tài khoản quản trị viên đầu tiên của bạn.' if setup else 'Tiếp tục hành trình học tập và quản lý của bạn.' }}</p><form method="post">{{ csrf() }}{% if setup %}<label>Họ và tên<input name="full_name" required maxlength="160" autocomplete="name"></label>{% endif %}<label>Tên đăng nhập<input name="username" required maxlength="80" autocomplete="username" placeholder="Nhập tên đăng nhập"></label><label>Mật khẩu<input type="password" name="password" required minlength="{{ 8 if setup else 1 }}" maxlength="256" autocomplete="{{ 'new-password' if setup else 'current-password' }}" placeholder="Nhập mật khẩu"></label><button class="btn primary full" type="submit">{{ 'Tạo quản trị viên' if setup else 'Đăng nhập' }} <span>→</span></button></form><p class="auth-note">Đăng nhập nội bộ · SSO chưa được cấu hình</p></div></section></div>{% endblock %}
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf with context %}
+{% block content %}
+    <div class="auth-layout">
+        <section class="auth-art">
+            <a class="brand" href="/"><span class="brand-icon">C</span><span>campus</span></a>
+            <div class="auth-copy">
+                <span class="pill">MỘT KHÔNG GIAN · NHIỀU KẾT NỐI</span>
+                <h1>Kết nối tri thức.<br>Kiến tạo tương lai.</h1>
+                <p>Quản lý đào tạo, đồng hành cùng người học và chia sẻ tài nguyên trong một hệ thống thống nhất.</p>
+                <div class="auth-modules">
+                    <span>01 · Sinh viên</span>
+                    <span>02 · Đào tạo</span>
+                    <span>03 · Học liệu</span>
+                    <span>04 · Báo cáo</span>
+                    <span>05 · Phân quyền</span>
+                </div>
+            </div>
+            <small>Campus / Hệ thống quản lý giáo dục</small>
+        </section>
+        <section class="auth-form">
+            <div>
+                <div class="eyebrow">
+                    CHÀO MỪNG ĐẾN VỚI CAMPUS
+                </div>
+                <h2>{{ 'Khởi tạo hệ thống' if setup else 'Đăng nhập tài khoản' }}</h2>
+                <p>{{ 'Tạo tài khoản quản trị viên đầu tiên của bạn.' if setup else 'Tiếp tục hành trình học tập và quản lý của bạn.' }}</p>
+                <form method="post">
+                    {{ csrf() }}
+                    {% if setup %}
+                        <label>
+                            Họ và tên
+                            <input name="full_name" required maxlength="160" autocomplete="name">
+                        </label>
+                    {% endif %}
+                    <label>
+                        Tên đăng nhập
+                        <input name="username" required maxlength="80" autocomplete="username" placeholder="Nhập tên đăng nhập">
+                    </label>
+                    <label>
+                        Mật khẩu
+                        <input type="password" name="password" required minlength="{{ 8 if setup else 1 }}" maxlength="256" autocomplete="{{ 'new-password' if setup else 'current-password' }}" placeholder="Nhập mật khẩu">
+                    </label>
+                    <button class="btn primary full" type="submit">{{ 'Tạo quản trị viên' if setup else 'Đăng nhập' }} <span>→</span></button>
+                </form>
+                <p class="auth-note">Đăng nhập nội bộ · SSO chưa được cấu hình</p>
+            </div>
+        </section>
+    </div>
+{% endblock %}

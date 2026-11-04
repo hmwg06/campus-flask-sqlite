@@ -1,5 +1,33 @@
-{% macro heading(eyebrow,title,description) %}<div class="page-heading"><div><div class="eyebrow">{{ eyebrow }}</div><h1>{{ title }}</h1><p>{{ description }}</p></div>{{ caller() if caller is defined }}</div>{% endmacro %}
-{% macro badge(status) %}<span class="badge {{ status }}">{{ statuses.get(status, status) }}</span>{% endmacro %}
-{% macro empty(text='Chưa có dữ liệu. Hãy thêm bản ghi đầu tiên để bắt đầu.') %}<div class="empty"><span>▤</span><h3>Chưa có dữ liệu</h3><p>{{ text }}</p></div>{% endmacro %}
-{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endmacro %}
-{% macro training_tabs(current='') %}<div class="tabs">{% for key in ['programs','subjects','curriculum','classes','enrollments'] %}<a class="{{ 'active' if current == key }}" href="{{ url_for('web.listing',table=key) }}">{{ catalog[key].title }}</a>{% endfor %}</div>{% endmacro %}
+{% macro heading(eyebrow,title,description) %}
+    <div class="page-heading">
+        <div>
+            <div class="eyebrow">
+                {{ eyebrow }}
+            </div>
+            <h1>{{ title }}</h1>
+            <p>{{ description }}</p>
+        </div>
+        {{ caller() if caller is defined }}
+    </div>
+{% endmacro %}
+{% macro badge(status) %}
+    <span class="badge {{ status }}">{{ statuses.get(status, status) }}</span>
+{% endmacro %}
+{% macro empty(text='Chưa có dữ liệu. Hãy thêm bản ghi đầu tiên để bắt đầu.') %}
+    <div class="empty">
+        <span>▤</span>
+        <h3>Chưa có dữ liệu</h3>
+        <p>{{ text }}</p>
+    </div>
+{% endmacro %}
+{% macro csrf() %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+{% endmacro %}
+{% macro training_tabs(current='') %}
+    <div class="tabs">
+        {% for key in ['programs','subjects','curriculum','classes','enrollments'] %}
+            <a class="{{ 'active' if current == key }}" href="{{ url_for('listing',table=key) }}">{{ catalog[key].title }}</a>
+        {% endfor %}
+        <a class="{{ 'active' if current == 'lecturers' }}" href="{{ url_for('lecturers') }}">Giảng viên NEU</a>
+    </div>
+{% endmacro %}

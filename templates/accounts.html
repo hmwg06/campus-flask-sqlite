@@ -1,5 +1,67 @@
-{% extends 'base.html' %}{% from 'macros.html' import heading,empty with context %}
-{% block content %}{% call heading('M20 / QUẢN TRỊ TRUY CẬP','Tài khoản & phân quyền','Quản lý người dùng, vai trò và lịch sử thay đổi quyền truy cập.') %}<a class="btn primary" href="{{ url_for('web.account_edit') }}">＋ Cấp tài khoản</a>{% endcall %}
-<div class="notice"><strong>Đăng nhập nội bộ đang hoạt động.</strong> SSO chưa cấu hình nhà cung cấp. Quyền quản lý: Admin toàn hệ thống; cán bộ quản lý nghiệp vụ; giảng viên theo lớp được phân công; sinh viên theo hồ sơ cá nhân và lớp đã đăng ký.</div>
-<section class="panel"><div class="panel-header"><h2>Danh sách tài khoản</h2><span class="count-bubble">{{ users|length }}</span></div><div class="table-wrap"><table><thead><tr><th>Người dùng</th><th>Tên đăng nhập</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{% for user in users %}<tr><td><strong>{{ user.full_name }}</strong></td><td>{{ user.username }}</td><td>{{ roles[user.role] }}</td><td><span class="badge {{ 'published' if user.active else 'archived' }}">{{ 'Hoạt động' if user.active else 'Đã khóa' }}</span></td><td><a href="{{ url_for('web.account_edit',record_id=user.id) }}">Chỉnh sửa</a></td></tr>{% endfor %}</tbody></table></div></section>
-<section class="panel"><div class="panel-header"><div><h2>Nhật ký hệ thống</h2><p>100 thay đổi gần nhất · thời gian UTC</p></div></div>{% for event in logs %}<details class="history"><summary>{{ event.created_at }} · {{ event.full_name or 'Hệ thống' }} · {{ event.action }} · {{ event.entity }} #{{ event.record_id }}</summary><pre>{{ event.detail or 'Không có thông tin bổ sung.' }}</pre></details>{% else %}{{ empty('Chưa có thay đổi được ghi nhận.') }}{% endfor %}</section>{% endblock %}
+{% extends 'base.html' %}
+{% from 'macros.html' import heading,empty with context %}
+{% block content %}
+    {% call heading('M20 / QUẢN TRỊ TRUY CẬP','Tài khoản & phân quyền','Quản lý người dùng, vai trò và lịch sử thay đổi quyền truy cập.') %}
+        <a class="btn primary" href="{{ url_for('account_edit') }}">＋ Cấp tài khoản</a>
+    {% endcall %}
+    <div class="notice">
+        <strong>Đăng nhập nội bộ đang hoạt động.</strong>
+        SSO chưa cấu hình nhà cung cấp. Quyền quản lý: Admin toàn hệ thống; cán bộ quản lý nghiệp vụ; giảng viên theo lớp được phân công; sinh viên theo hồ sơ cá nhân và lớp đã đăng ký.
+    </div>
+    <section class="panel">
+        <div class="panel-header">
+            <h2>Danh sách tài khoản</h2>
+            <span class="count-bubble">{{ users|length }}</span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Người dùng</th>
+                        <th>Tên đăng nhập</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td><strong>{{ user.full_name }}</strong></td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ roles[user.role] }}</td>
+                            <td><span class="badge {{ 'published' if user.active else 'archived' }}">{{ 'Hoạt động' if user.active else 'Đã khóa' }}</span></td>
+                            <td><a href="{{ url_for('account_edit',record_id=user.id) }}">Chỉnh sửa</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2>Nhật ký hệ thống</h2>
+                <p>100 thay đổi gần nhất · thời gian UTC</p>
+            </div>
+        </div>
+        {% for event in logs %}
+            <details class="history">
+                <summary>
+                    {{ event.created_at }}
+                    ·
+                    {{ event.full_name or 'Hệ thống' }}
+                    ·
+                    {{ event.action }}
+                    ·
+                    {{ event.entity }}
+                    #
+                    {{ event.record_id }}
+                </summary>
+                <pre>{{ event.detail or 'Không có thông tin bổ sung.' }}</pre>
+            </details>
+        {% else %}
+            {{ empty('Chưa có thay đổi được ghi nhận.') }}
+        {% endfor %}
+    </section>
+{% endblock %}

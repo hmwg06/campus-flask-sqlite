@@ -12,7 +12,7 @@ Nếu vừa tải mã nguồn từ GitHub, tạo môi trường Python trước 
 py -m venv .venv
 ```
 
-Repository chỉ chứa mã nguồn và script tạo dữ liệu mẫu. Database, tài khoản hiện có, tệp tải lên và khóa phiên không được đưa lên GitHub; ứng dụng tự tạo database mới khi chạy lần đầu.
+Repository chứa mã nguồn ứng dụng. Database, tài khoản hiện có, tệp tải lên và khóa phiên không được đưa lên GitHub; ứng dụng tự tạo database mới khi chạy lần đầu.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
@@ -21,21 +21,34 @@ Repository chỉ chứa mã nguồn và script tạo dữ liệu mẫu. Database
 
 Lần đầu mở website sẽ có màn hình tạo tài khoản quản trị. Không có mật khẩu mặc định.
 
-**Muốn dùng dữ liệu mẫu:** trước khi tạo tài khoản đầu tiên, chạy lệnh dưới và tự đặt mật khẩu (ít nhất 8 ký tự):
+## Cấu trúc code
 
-```powershell
-.\.venv\Scripts\python.exe -m flask --app app seed-demo
-```
+**`app.py`** cấu hình Flask và khai báo các URL bằng `@app.route`. Mỗi route gọi một hàm xử lý trong thư mục `campus`; không dùng Blueprint.
 
-Lệnh tạo tài khoản `admin`, `staff`, `teacher`, `student`, cùng dùng mật khẩu vừa nhập; có hai sinh viên, hai học phần và ví dụ học liệu. Lệnh từ chối nếu database đã có tài khoản để không trộn dữ liệu thật. Dữ liệu mẫu không được tự động tạo mỗi lần chạy.
+Muốn đổi URL, sửa `app.py`. Muốn đổi nghiệp vụ, mở file phụ trách mục tương ứng. Chú thích giải thích câu lệnh được giữ cùng phần code đã chuyển.
+
+| Thành phần | Nội dung |
+|---|---|
+| `app.py` | Cấu hình ứng dụng, đăng ký route và chạy website |
+| `campus/auth.py` | Khởi tạo quản trị viên, đăng nhập, đăng xuất, đổi mật khẩu |
+| `campus/dashboard.py` | Trang tổng quan |
+| `campus/students.py` | Hồ sơ sinh viên và kết quả học tập |
+| `campus/training.py` | Đào tạo và danh sách giảng viên |
+| `campus/learning.py` | Học liệu, kiểm duyệt, tải tài liệu và luyện câu hỏi |
+| `campus/reports.py` | Báo cáo và xuất CSV |
+| `campus/accounts.py` | Quản lý tài khoản và vai trò |
+| `campus/records.py` | Trang danh sách, biểu mẫu thêm/sửa và kiểm tra dữ liệu dùng chung |
+| `campus/common.py` | Truy vấn và giới hạn dữ liệu theo quyền |
+| `campus/hooks.py` | Kiểm tra đăng nhập, CSRF, phản hồi và trang lỗi |
+| `campus/catalog.py` | Cấu hình trường biểu mẫu, vai trò và trạng thái |
+| `campus/db.py` | Kết nối SQLite, khởi tạo bảng và ghi nhật ký |
+| `schema.sql` | Cấu trúc bảng SQLite |
+| `templates/`, `static/` | HTML, CSS và JavaScript |
+
+Ví dụ: mở `/students` → route `students()` trong `app.py` → `campus/students.py` → hiển thị danh sách. Các file tính năng không import ngược lại `app.py`. `create_app()` vẫn được giữ để kiểm thử với database tạm riêng.
+
 
 ## Các luồng sử dụng
-
-### Bổ sung dữ liệu mẫu vào database đã có tài khoản
-
-Chạy `.\.venv\Scripts\python.exe seed_data.py`. Script sao lưu database vào `instance/backups`, giữ nguyên dữ liệu hiện có và thêm bộ dữ liệu có mã `DEMO` gồm 12 sinh viên, 2 chương trình, 6 học phần/lớp học, 36 đăng ký, 6 học liệu TXT và 6 câu hỏi. Chạy lại không tạo trùng.
-
-Các điểm số, hoạt động học tập và trạng thái công bố trong bộ DEMO là dữ liệu mô phỏng. Tài khoản mới gồm `demo.staff`, `demo.teacher1`–`demo.teacher3`, `demo.student01`–`demo.student12`; mỗi tài khoản có mật khẩu ngẫu nhiên riêng. Để đăng nhập thử, quản trị viên đặt mật khẩu mới ở **Tài khoản & quyền → Chỉnh sửa**. Script không thay đổi mật khẩu tài khoản hiện có.
 
 1. Admin tạo tài khoản cán bộ, giảng viên, sinh viên tại **Tài khoản & quyền**.
 2. Cán bộ tạo chương trình và phiên bản, học phần, khung chương trình, lớp học; phân công giảng viên.
@@ -45,6 +58,7 @@ Các điểm số, hoạt động học tập và trạng thái công bố trong
 6. Cán bộ/Admin xem báo cáo lớp, điểm trung bình từ kết quả công bố, lượt tải/mở học liệu, thời gian từ tạo đến lần kiểm duyệt gần nhất; xuất CSV. Nhật ký chi tiết toàn hệ thống chỉ dành cho Admin.
 
 ## Phân quyền
+
 
 | Vai trò | Phạm vi |
 |---|---|

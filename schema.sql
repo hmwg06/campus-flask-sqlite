@@ -59,3 +59,8 @@ CREATE TABLE IF NOT EXISTS activity (
 CREATE INDEX IF NOT EXISTS enrollment_student_idx ON enrollments(student_id);
 CREATE INDEX IF NOT EXISTS class_teacher_idx ON classes(teacher_id);
 CREATE INDEX IF NOT EXISTS audit_entity_idx ON audit(entity,record_id);
+CREATE TABLE IF NOT EXISTS lecturers (
+ id INTEGER PRIMARY KEY, source_key TEXT NOT NULL UNIQUE, full_name TEXT NOT NULL,
+ academic_title TEXT NOT NULL DEFAULT '', department TEXT NOT NULL, position TEXT NOT NULL DEFAULT '',
+ source_url TEXT NOT NULL, profile_url TEXT NOT NULL DEFAULT '', retrieved_date TEXT NOT NULL
+);

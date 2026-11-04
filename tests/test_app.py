@@ -4,7 +4,8 @@ import unittest
 from pathlib import Path
 
 from app import create_app
-from campus.db import get_db, seed_demo
+from campus.db import get_db
+from tests.fixtures import create_test_records
 
 
 class CampusTest(unittest.TestCase):
@@ -13,7 +14,7 @@ class CampusTest(unittest.TestCase):
         self.app = create_app({'TESTING': True, 'DATABASE': str(Path(self.temp.name) / 'test.db'),
                                'UPLOAD_FOLDER': str(Path(self.temp.name) / 'uploads'), 'SECRET_KEY': 'test'})
         with self.app.app_context():
-            seed_demo('Campus123!')
+            create_test_records('Campus123!')
         self.client = self.app.test_client()
 
     def tearDown(self):
@@ -33,7 +34,7 @@ class CampusTest(unittest.TestCase):
         self.assertEqual(self.client.post('/login', data={}).status_code, 400)
         self.assertIn('không đúng', self.post('/login', {'username': 'admin', 'password': 'bad'}).text)
         self.login()
-        for path in ['/', '/students', '/training', '/learning', '/reports', '/accounts',
+        for path in ['/', '/students', '/training', '/lecturers', '/learning', '/reports', '/accounts',
                      '/records/programs', '/records/subjects', '/records/classes', '/records/enrollments',
                      '/records/resources', '/records/questions', '/records/programs/new']:
             with self.subTest(path=path):

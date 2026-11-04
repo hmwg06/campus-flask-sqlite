@@ -1,70 +1,38 @@
+"""Kết nối SQLite, khởi tạo bảng và ghi nhật ký."""
 import sqlite3
 from pathlib import Path
 
-import click
 from flask import current_app, g
-from werkzeug.security import generate_password_hash
 
 
 def get_db():
+    # g lưu dữ liệu trong ngữ cảnh Flask hiện tại; tái sử dụng kết nối thay vì mở nhiều lần.
     if 'db' not in g:
+        # current_app trỏ tới ứng dụng đang xử lý; khi kiểm thử, DATABASE là file tạm riêng.
         g.db = sqlite3.connect(current_app.config['DATABASE'])
+        # Cho phép đọc cột bằng tên, ví dụ row['full_name'], thay vì chỉ dùng row[1].
         g.db.row_factory = sqlite3.Row
+        # SQLite phải bật khóa ngoại trên từng kết nối để kiểm tra liên kết giữa các bảng.
         g.db.execute('PRAGMA foreign_keys=ON')
+        # Chờ tối đa 5.000 ms khi database đang bị kết nối khác khóa, rồi mới báo lỗi.
         g.db.execute('PRAGMA busy_timeout=5000')
     return g.db
 
 
 def init_db():
-    get_db().executescript((Path(__file__).parent / 'schema.sql').read_text(encoding='utf-8'))
+    # Chạy các lệnh CREATE TABLE IF NOT EXISTS trong schema.sql; không reset dữ liệu cũ.
+    get_db().executescript((Path(__file__).resolve().parent.parent / 'schema.sql').read_text(encoding='utf-8'))
 
 
 def audit(action, entity, record_id, detail=''):
+    # Lưu người thực hiện, thao tác và bản ghi bị thay đổi; hàm gọi sẽ commit cùng dữ liệu.
     user = getattr(g, 'user', None)
     get_db().execute('INSERT INTO audit(user_id,action,entity,record_id,detail) VALUES(?,?,?,?,?)',
                      (user['id'] if user else None, action, entity, record_id, detail))
 
 
-def seed_demo(password):
-    db = get_db()
-    if db.execute('SELECT 1 FROM users').fetchone():
-        raise ValueError('Cơ sở dữ liệu đã có tài khoản; không thêm dữ liệu mẫu để tránh trộn dữ liệu.')
-    for username, name, role in [('admin', 'Quản trị hệ thống', 'admin'), ('staff', 'Phòng đào tạo', 'staff'),
-                                  ('teacher', 'TS. Lê Hoàng Nam', 'teacher'), ('student', 'Nguyễn Minh Anh', 'student')]:
-        db.execute('INSERT INTO users(username,full_name,password_hash,role) VALUES(?,?,?,?)',
-                   (username, name, generate_password_hash(password), role))
-    db.execute("INSERT INTO programs(code,name,version,description) VALUES('CNTT','Công nghệ thông tin','2026','Chương trình cử nhân Công nghệ thông tin')")
-    db.execute("INSERT INTO programs(code,name,version,description) VALUES('QTKD','Quản trị kinh doanh','2026','Chương trình cử nhân Quản trị kinh doanh')")
-    db.execute("INSERT INTO subjects(code,name,credits,description) VALUES('IT101','Nhập môn lập trình',3,'Tư duy lập trình và Python')")
-    db.execute("INSERT INTO subjects(code,name,credits,description) VALUES('IT202','Cơ sở dữ liệu',3,'Mô hình quan hệ và SQL')")
-    db.execute('INSERT INTO curriculum(program_id,subject_id,semester) VALUES(1,1,1),(1,2,2)')
-    db.execute("INSERT INTO students(code,full_name,email,cohort,status,user_id) VALUES('SV2026001','Nguyễn Minh Anh','minhanh@example.edu','K2026','studying',4)")
-    db.execute("INSERT INTO students(code,full_name,email,cohort,status) VALUES('SV2026002','Trần Quốc Bảo','quocbao@example.edu','K2026','studying')")
-    db.execute("INSERT INTO studies(student_id,program_id,start_date,status) VALUES(1,1,'2026-09-01','studying'),(2,1,'2026-09-01','studying')")
-    db.execute("INSERT INTO classes(code,subject_id,teacher_id,term,schedule) VALUES('IT101-01',1,3,'HK1 · 2026–2027','Thứ 2 • 07:30–10:00'),('IT202-01',2,3,'HK1 · 2026–2027','Thứ 4 • 13:30–16:00')")
-    db.execute("INSERT INTO enrollments(student_id,class_id,grade,status) VALUES(1,1,8.5,'published'),(2,1,NULL,'draft'),(1,2,NULL,'draft')")
-    db.execute("INSERT INTO resources(title,author,source,version,license,url,owner_id,status) VALUES('Bài giảng Python – bản nháp','Lê Hoàng Nam','Biên soạn nội bộ','1.0','Chỉ dùng nội bộ','https://docs.python.org/3/tutorial/',3,'draft')")
-    db.execute("INSERT INTO resources(title,author,source,version,license,url,owner_id,status,reviewed_by,reviewed_at) VALUES('Tài liệu SQL cơ bản','SQLite','SQLite documentation','1.0','Theo điều khoản nguồn','https://www.sqlite.org/lang.html',3,'published',1,CURRENT_TIMESTAMP)")
-    db.execute('INSERT INTO resource_subjects VALUES(1,1),(2,2)')
-    db.execute("INSERT INTO questions(subject_id,prompt,choice_a,choice_b,choice_c,choice_d,answer,source,owner_id) VALUES(1,'Câu hỏi bản nháp: Kiểu dữ liệu nào lưu số nguyên?','int','str','list','dict','A','Biên soạn nội bộ',3)")
-    db.commit()
-
-
-def init_app(app):
-    @app.teardown_appcontext
-    def close_db(error=None):
-        db = g.pop('db', None)
-        if db:
-            db.close()
-
-    @app.cli.command('seed-demo')
-    @click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True)
-    def seed_command(password):
-        """Create sample records and four demo accounts in an empty database."""
-        if len(password) < 8:
-            raise click.ClickException('Mật khẩu cần ít nhất 8 ký tự.')
-        try:
-            seed_demo(password)
-        except ValueError as error:
-            raise click.ClickException(str(error)) from error
-        click.echo('Đã tạo dữ liệu mẫu. Tài khoản: admin, staff, teacher, student.')
+def close_db(error=None):
+    # pop() lấy kết nối và bỏ nó khỏi g; callback chạy cả khi xử lý yêu cầu bị lỗi.
+    db = g.pop('db', None)
+    if db:
+        db.close()
