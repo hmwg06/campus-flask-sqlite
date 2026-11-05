@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf with context %}
+{% block content %}
+    <div class="auth-layout">
+        <header class="auth-header">
+            <a class="brand" href="{{ url_for('login') }}" aria-label="LMS - Trang đăng nhập"><span class="brand-icon" aria-hidden="true">L</span><span>LMS</span></a>
+        </header>
+        <section class="auth-form" aria-labelledby="auth-title">
+            <div>
+                <h1 id="auth-title">{{ 'Khởi tạo hệ thống' if setup else 'Đăng nhập tài khoản' }}</h1>
+                {% if setup %}
+                    <p>Tạo tài khoản quản trị viên đầu tiên của bạn.</p>
+                {% endif %}
+                <form method="post">
+                    {{ csrf() }}
+                    {% if setup %}
+                        <label>
+                            Họ và tên
+                            <input name="full_name" required maxlength="160" autocomplete="name">
+                        </label>
+                    {% endif %}
+                    <label>
+                        Tên đăng nhập
+                        <input name="username" required maxlength="80" autocomplete="username" placeholder="Nhập tên đăng nhập">
+                    </label>
+                    <label>
+                        Mật khẩu
+                        <input type="password" name="password" required minlength="{{ 8 if setup else 1 }}" maxlength="256" autocomplete="{{ 'new-password' if setup else 'current-password' }}" placeholder="Nhập mật khẩu">
+                    </label>
+                    <button class="btn primary full" type="submit">{{ 'Tạo quản trị viên' if setup else 'Đăng nhập' }} <span>→</span></button>
+                </form>
+                {% if not setup %}<div class="auth-links"><a href="{{ url_for('forgot_password') }}">Quên mật khẩu?</a></div>{% endif %}
+            </div>
+        </section>
+    </div>
+{% endblock %}

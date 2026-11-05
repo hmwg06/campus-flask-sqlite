@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import empty with context %}
+{% block content %}
+<div class="study-heading"><div><span class="eyebrow">HỌC LIỆU & ÔN TẬP</span><h1>Học phần của tôi</h1><p>Tài liệu và câu hỏi được tập hợp theo từng môn bạn đang học.</p></div><a class="btn" href="{{ url_for('dashboard', _anchor='analysis') }}">Xem kết quả luyện tập →</a></div>
+{% for course in study.courses %}
+<section class="panel course-materials" id="course-{{ course.id }}"><div class="panel-header"><div><span class="study-subject-code">{{ course.code }} · {{ course.credits }} tín chỉ</span><h2>{{ course.name }}</h2><p>{{ course.resources|length }} học liệu · {{ course.total }} câu hỏi · {{ course.answered }} câu đã luyện tập</p></div><a class="btn primary" href="{{ url_for('practice', subject=course.id) }}">Luyện tập →</a></div>
+    <div class="study-material-list">{% for resource in course.resources %}<article><span class="study-file-icon" aria-hidden="true">▤</span><div><h3>{{ resource.title }}</h3><p>{{ resource.author }} · Phiên bản {{ resource.version }}</p><small>{{ resource.source }} · {{ resource.license }}</small></div><a class="btn" href="{{ url_for('download', record_id=resource.id) }}" target="_blank" rel="noopener">{{ 'Tải tài liệu ↓' if resource.stored_name else 'Mở học liệu ↗' }}</a></article>{% else %}{{ empty('Học phần này chưa có tài liệu được công bố.') }}{% endfor %}</div>
+</section>
+{% else %}<section class="panel">{{ empty('Bạn chưa được đăng ký học phần. Liên hệ bộ phận đào tạo để được hỗ trợ.') }}</section>{% endfor %}
+{% endblock %}

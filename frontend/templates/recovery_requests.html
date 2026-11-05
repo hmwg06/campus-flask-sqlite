@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import heading,empty,csrf with context %}
+{% block content %}
+{% call heading('TÀI KHOẢN / KHÔI PHỤC','Yêu cầu khôi phục mật khẩu','Xác minh danh tính qua kênh liên hệ đã biết trước khi cấp liên kết cho người dùng.') %}<a class="btn" href="{{ url_for('accounts') }}">Tài khoản</a>{% endcall %}
+{% if reset_link %}<section class="panel recovery-link"><h2>Liên kết đặt lại mật khẩu</h2><p>Gửi riêng cho người dùng đã được xác minh. Liên kết dùng một lần, có hiệu lực 30 phút. Cấp lại sẽ vô hiệu hóa liên kết cũ.</p><label>Sao chép liên kết<input readonly value="{{ reset_link }}" aria-label="Liên kết đặt lại mật khẩu"></label></section>{% endif %}
+<section class="panel"><div class="panel-header"><h2>Yêu cầu đang chờ</h2><span>{{ requests|length }} yêu cầu</span></div>
+{% for item in requests %}<article class="recovery-request"><div><h3>{{ item.full_name }} <small>({{ item.username }})</small></h3><p>{{ roles[item.role] }} · Yêu cầu lúc {{ item.requested_at }} UTC</p>{% if item.expires_at %}<small>Liên kết gần nhất hết hạn lúc {{ item.expires_at }} UTC</small>{% endif %}</div>{% if item.active %}<form method="post" action="{{ url_for('issue_recovery_link', user_id=item.user_id) }}">{{ csrf() }}<label class="verify-identity"><input type="checkbox" name="verified" value="1" required> Tôi đã xác minh danh tính người yêu cầu</label><button class="btn" type="submit">{{ 'Cấp lại liên kết' if item.token_hash else 'Cấp liên kết' }}</button></form>{% else %}<span>Tài khoản đã bị khóa</span>{% endif %}</article>{% else %}{{ empty('Chưa có yêu cầu khôi phục mật khẩu.') }}{% endfor %}
+</section>
+{% endblock %}

@@ -1,6 +1,14 @@
-# Campus — Flask + SQLite
+# LMS — Flask + SQLite
 
-Website tiếng Việt gồm M03 (sinh viên), M04 (đào tạo), M10 (LMS/LCMS), M17 (báo cáo), M20 (tài khoản).
+Website tiếng Việt gồm **3 module chính**:
+
+| Module | Phạm vi | File nghiệp vụ |
+|---|---|---|
+| LMS | Ôn tập, phân tích cá nhân, học liệu; quản lý sinh viên, chương trình, lớp học và điểm | `backend/lms.py`, `backend/study.py` |
+| Phân tích học tập | Kết quả theo lớp, điểm trung bình đã công bố, lượt sử dụng học liệu và xuất CSV | `backend/analytics.py` |
+| Tài khoản & quyền | Đăng nhập, đổi/khôi phục mật khẩu, tài khoản và vai trò | `backend/m20.py`, `backend/recovery.py` |
+
+Sinh viên có giao diện ôn tập và phân tích cá nhân. Cán bộ/admin xem báo cáo tổng hợp theo lớp; quản trị tài khoản dành cho admin, các vai trò khác vào **Tài khoản & quyền** để đổi mật khẩu. Quyền truy cập được kiểm tra phía server.
 
 ## Chạy trong PyCharm / Windows
 
@@ -23,30 +31,40 @@ Lần đầu mở website sẽ có màn hình tạo tài khoản quản trị. K
 
 ## Cấu trúc code
 
-**`app.py`** cấu hình Flask và khai báo các URL bằng `@app.route`. Mỗi route gọi một hàm xử lý trong thư mục `campus`; không dùng Blueprint.
+Dự án chia thành **frontend**, **backend** và **database**. Chạy bằng `app.py` như trước.
 
-Muốn đổi URL, sửa `app.py`. Muốn đổi nghiệp vụ, mở file phụ trách mục tương ứng. Chú thích giải thích câu lệnh được giữ cùng phần code đã chuyển.
+```text
+FlaskProject7/
+├── app.py                 # Điểm chạy website; export app, create_app và main
+├── frontend/
+│   ├── templates/         # Giao diện HTML/Jinja
+│   └── static/            # CSS và JavaScript
+├── backend/
+│   ├── app.py             # Cấu hình Flask và đăng ký URL
+│   ├── lms.py             # Quản lý học tập và các biểu mẫu LMS
+│   ├── study.py           # Ôn tập và phân tích cá nhân cho sinh viên
+│   ├── analytics.py       # Phân tích học tập và xuất CSV
+│   ├── m20.py             # Đăng nhập, tài khoản và vai trò
+│   ├── recovery.py        # Khôi phục mật khẩu sau xác minh
+│   ├── common.py          # Truy vấn và giới hạn dữ liệu theo quyền
+│   ├── hooks.py           # Xác thực, CSRF và xử lý lỗi
+│   └── catalog.py         # Cấu hình trường biểu mẫu, vai trò, trạng thái
+├── database/
+│   ├── connection.py      # Kết nối SQLite, khởi tạo bảng và ghi nhật ký
+│   └── schema.sql         # Định nghĩa các bảng và chỉ mục
+└── instance/              # Dữ liệu chạy thực tế (không đưa lên Git)
+```
 
-| Thành phần | Nội dung |
-|---|---|
-| `app.py` | Cấu hình ứng dụng, đăng ký route và chạy website |
-| `campus/auth.py` | Khởi tạo quản trị viên, đăng nhập, đăng xuất, đổi mật khẩu |
-| `campus/dashboard.py` | Trang tổng quan |
-| `campus/students.py` | Hồ sơ sinh viên và kết quả học tập |
-| `campus/training.py` | Đào tạo và danh sách giảng viên |
-| `campus/learning.py` | Học liệu, kiểm duyệt, tải tài liệu và luyện câu hỏi |
-| `campus/reports.py` | Báo cáo và xuất CSV |
-| `campus/accounts.py` | Quản lý tài khoản và vai trò |
-| `campus/records.py` | Trang danh sách, biểu mẫu thêm/sửa và kiểm tra dữ liệu dùng chung |
-| `campus/common.py` | Truy vấn và giới hạn dữ liệu theo quyền |
-| `campus/hooks.py` | Kiểm tra đăng nhập, CSRF, phản hồi và trang lỗi |
-| `campus/catalog.py` | Cấu hình trường biểu mẫu, vai trò và trạng thái |
-| `campus/db.py` | Kết nối SQLite, khởi tạo bảng và ghi nhật ký |
-| `schema.sql` | Cấu trúc bảng SQLite |
-| `templates/`, `static/` | HTML, CSS và JavaScript |
+- Sửa giao diện: mở `frontend/templates/`, `frontend/static/`.
+- Sửa URL hoặc cấu hình: mở `backend/app.py`; sửa nghiệp vụ trong module backend tương ứng.
+- Sửa cấu trúc bảng/kết nối: mở `database/schema.sql`, `database/connection.py`. Các truy vấn nghiệp vụ vẫn nằm trong backend.
+- Database thực tế vẫn ở `instance/campus.sqlite3`; tệp tải lên và khóa phiên giữ nguyên trong `instance/`.
 
-Ví dụ: mở `/students` → route `students()` trong `app.py` → `campus/students.py` → hiển thị danh sách. Các file tính năng không import ngược lại `app.py`. `create_app()` vẫn được giữ để kiểm thử với database tạm riêng.
+Frontend dùng HTML/Jinja do Flask render; ba thư mục cùng chạy trong một ứng dụng. Flask phục vụ CSS/JS tại `/static/...` như trước. Không cần chạy frontend riêng.
 
+Ví dụ: `/students` → route trong `backend/app.py` → `backend/lms.py` → đọc SQLite qua `database/connection.py` → render `frontend/templates/listing.html`.
+
+`create_app(config=None)` có thể import từ `backend.app` hoặc `app` để cấu hình ứng dụng theo môi trường triển khai. Các đường dẫn giao diện, schema và `instance` được xác định theo vị trí mã nguồn, không phụ thuộc thư mục chạy lệnh.
 
 ## Các luồng sử dụng
 
@@ -57,7 +75,24 @@ Ví dụ: mở `/students` → route `students()` trong `app.py` → `campus/stu
 5. Giảng viên tạo học liệu/câu hỏi thuộc học phần được phân công. Học liệu hỗ trợ tệp hoặc liên kết, tác giả/nguồn/phiên bản/quyền sử dụng, một tài liệu gắn nhiều học phần. Cán bộ/Admin duyệt và công bố hoặc lưu trữ. Sửa nội dung sẽ đưa về nháp. Sinh viên chỉ truy cập nội dung đã công bố của lớp đã đăng ký; có luyện câu hỏi và phản hồi đúng/sai.
 6. Cán bộ/Admin xem báo cáo lớp, điểm trung bình từ kết quả công bố, lượt tải/mở học liệu, thời gian từ tạo đến lần kiểm duyệt gần nhất; xuất CSV. Nhật ký chi tiết toàn hệ thống chỉ dành cho Admin.
 
-## Phân quyền
+## Ôn tập và phân tích cá nhân cho sinh viên
+
+- Đăng nhập bằng tài khoản sinh viên đã liên kết hồ sơ và đăng ký lớp. Trang chủ hiển thị **Ôn tập hôm nay**, gợi ý ôn lại câu sai, tỷ lệ đúng theo môn, hoạt động 7 ngày và 8 lần trả lời gần nhất.
+- **Học phần của tôi** (`/courses`) nhóm học liệu đã công bố theo môn. **Luyện tập** (`/practice`) lọc theo môn, câu chưa làm hoặc câu cần ôn lại; mỗi trang có tối đa 10 câu.
+- Mỗi câu trả lời hợp lệ được lưu cùng phiên bản câu hỏi. Tỷ lệ đúng tính trên mọi lần trả lời của phiên bản hiện tại; danh sách cần ôn lại dùng kết quả gần nhất của từng câu. Trả lời đúng lần tiếp theo sẽ đưa câu đó ra khỏi danh sách cần ôn lại.
+- Chỉ thống kê câu hỏi hiện được công bố thuộc học phần sinh viên có quyền truy cập. Khi câu hỏi đổi phiên bản, lịch sử cũ vẫn được lưu nhưng không đưa vào thống kê hiện tại. Chưa làm bài sẽ hiện **Chưa có dữ liệu**, không coi là kết quả 0%.
+- Thời gian lịch sử và hoạt động 7 ngày dùng UTC. Tỷ lệ đúng là kết quả luyện tập, không phải điểm học phần hay chứng nhận hoàn thành.
+
+## Quên mật khẩu
+
+1. Người dùng chọn **Quên mật khẩu?** trên trang đăng nhập và gửi tên đăng nhập.
+2. Admin mở **Tài khoản & quyền → Yêu cầu quên mật khẩu**, xác minh danh tính qua kênh liên hệ đã biết, rồi chọn **Cấp liên kết**.
+3. Admin gửi riêng liên kết cho đúng người đã được xác minh. Liên kết chỉ dùng một lần, hết hạn sau 30 phút; cấp lại sẽ hủy liên kết cũ. Bản hiện tại không gửi email tự động.
+4. Người dùng nhập và xác nhận mật khẩu mới (8–256 ký tự). Đặt lại thành công sẽ vô hiệu hóa các phiên đăng nhập cũ.
+
+Các bảng lịch sử luyện tập và khôi phục mật khẩu được thêm tự động khi khởi động lại ứng dụng; dữ liệu hiện có được giữ nguyên.
+
+## Phạm vi theo vai trò
 
 
 | Vai trò | Phạm vi |
@@ -76,19 +111,27 @@ Hồ sơ cá nhân dùng mã duy nhất, các lần theo học tách riêng theo
 - `instance/secret.key`: khóa phiên bền vững; có thể thay bằng biến môi trường `SECRET_KEY`.
 - Mật khẩu được hash; CSRF trên tất cả POST; truy vấn tham số hóa; kiểm tra quyền phía server; CSV vô hiệu hóa công thức từ ô văn bản.
 - Khóa/đổi vai trò có hiệu lực ở yêu cầu tiếp theo, không cho tự khóa/hạ quyền admin hoặc loại bỏ admin cuối cùng.
+- Đổi hoặc đặt lại mật khẩu vô hiệu hóa các phiên đăng nhập cũ; khi người dùng tự đổi mật khẩu, phiên đang thao tác được giữ lại.
 - Sao lưu cả ba mục trong `instance` khi ứng dụng đã dừng. Không đưa `instance` vào Git.
 - Chạy mặc định ở localhost, không bật debug. Khi triển khai mạng thật, cần HTTPS, cookie Secure, WSGI server, giới hạn thử đăng nhập, kiểm tra an toàn tệp tải lên và quy trình sao lưu phù hợp.
 
 ## Phạm vi phiên bản hiện tại
 
-Đây là bản ứng dụng nền tảng có các luồng chính hoạt động và dữ liệu lưu thật, chưa phải toàn bộ hệ thống quản trị đại học ở quy mô sản xuất. Chưa tích hợp nhà cung cấp SSO, API AI, tài chính, luận văn, tài khoản dịch vụ/chuyên gia riêng, quyền theo đơn vị/thời hạn, KPI/HEDI chính thức, quy đổi giờ giảng, phòng học/xếp lịch tự động, thi trực tuyến hay đồng bộ LMS ngoài. Hỗ trợ người học chỉ được nhắc trong phần tổng quan ảnh M10, chưa có đặc tả module riêng nên chưa triển khai ticket/chatbot.
+Ứng dụng lưu dữ liệu thật bằng SQLite và cung cấp các luồng được mô tả ở trên. Chưa tích hợp SSO, gửi email tự động, API AI, thi trực tuyến hoặc đồng bộ với LMS bên ngoài.
 
 Lưu lịch sử chỉnh sửa trong nhật ký; chưa có giao diện khôi phục phiên bản. Giới hạn tải lên 16 MB cho toàn bộ request; các tệp được tải xuống dưới dạng đính kèm. Lượt truy cập học liệu ghi nhận việc mở/tải, không đại diện thời lượng học hay hoàn thành khóa học. Không xóa dữ liệu lịch sử qua giao diện; dùng trạng thái bảo lưu/thôi học/lưu trữ/khóa.
 
-## Kiểm thử
+## Cập nhật lên GitHub
+
+Bộ mã nguồn gồm `app.py`, `backend/`, `database/`, `frontend/`, `requirements.txt`, `README.md` và `.gitignore`. Môi trường `.venv/`, cấu hình IDE, bộ nhớ đệm, dữ liệu trong `instance/` và gói bàn giao `.release/` được loại khỏi Git.
+
+Để cập nhật repository hiện có và ghi nhận cả những file cũ đã xóa:
 
 ```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+git add -A
+git status
+git commit -m "Finalize LMS student learning interface and personal analytics"
+git push
 ```
 
-Kiểm thử dùng SQLite tạm riêng, không thay đổi dữ liệu đang sử dụng.
+Nếu dùng gói `LMS-source.zip`, giải nén và đưa nội dung bên trong vào repository, bao gồm `.gitignore`. Nếu repository vẫn có cấu trúc cũ, xóa `campus/`, `templates/`, `static/`, `schema.sql`, `tests/` và các tài liệu kế hoạch cũ trước khi cập nhật; giao diện hiện nằm trong `frontend/`, schema nằm trong `database/`.

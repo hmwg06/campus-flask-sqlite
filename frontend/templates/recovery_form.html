@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf with context %}
+{% block content %}
+<div class="auth-layout"><header class="auth-header"><a class="brand" href="{{ url_for('login') }}"><span class="brand-icon" aria-hidden="true">L</span><span>LMS</span></a></header>
+<section class="auth-form" aria-labelledby="auth-title"><div><h1 id="auth-title">{{ title }}</h1><p>{{ 'Nhập mật khẩu mới để tiếp tục sử dụng tài khoản.' if reset else 'Nhập tên đăng nhập. Quản trị viên sẽ xác minh danh tính và cung cấp liên kết đặt lại mật khẩu cho bạn.' }}</p>
+<form method="post">{{ csrf() }}{% if reset %}<label>Mật khẩu mới<input type="password" name="password" required minlength="8" maxlength="256" autocomplete="new-password"></label><label>Nhập lại mật khẩu mới<input type="password" name="confirm_password" required minlength="8" maxlength="256" autocomplete="new-password"></label>{% else %}<label>Tên đăng nhập<input name="username" required maxlength="80" autocomplete="username" placeholder="Nhập tên đăng nhập"></label>{% endif %}<button class="btn primary full" type="submit">{{ 'Đặt lại mật khẩu' if reset else 'Gửi yêu cầu' }}</button></form><div class="auth-links"><a href="{{ url_for('login') }}">← Quay lại đăng nhập</a></div>
+</div></section></div>
+{% endblock %}

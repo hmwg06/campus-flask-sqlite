@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import empty with context %}
+{% block content %}
+<div class="study-heading"><div><span class="eyebrow">KHÔNG GIAN HỌC TẬP CỦA BẠN</span><h1>Ôn tập hôm nay</h1><p>Chào {{ g.user.full_name }}. Chọn một học phần và bắt đầu từ điều bạn muốn hiểu rõ hơn.</p></div><a class="btn primary" href="{{ url_for('practice') }}">Bắt đầu luyện tập →</a></div>
+<div class="study-stats">
+    <article><span>Học phần đang học</span><strong>{{ study.courses|length }}</strong><small>Trong phạm vi đăng ký của bạn</small></article>
+    <article><span>Câu đã luyện tập</span><strong>{{ study.answered }}<small> / {{ study.questions|length }}</small></strong><small>Tính theo phiên bản câu hỏi hiện tại</small></article>
+    <article><span>Tỷ lệ trả lời đúng</span><strong>{{ (study.accuracy|string ~ '%') if study.accuracy is not none else '—' }}</strong><small>{{ study.attempts|string ~ ' lần trả lời đã lưu' if study.attempts else 'Chưa có dữ liệu' }}</small></article>
+    <article><span>Câu cần ôn lại</span><strong>{{ study.wrong }}</strong><a href="{{ url_for('practice', mode='wrong') }}">Luyện lại câu sai →</a></article>
+</div>
+<div class="study-columns">
+    <section class="panel revision-panel"><div class="panel-header"><div><span class="eyebrow">BƯỚC TIẾP THEO</span><h2>Gợi ý ôn tập</h2><p>Ưu tiên câu trả lời sai gần nhất, sau đó đến câu chưa làm.</p></div></div>
+        <div class="revision-list">
+        {% for course in study.recommended %}
+            <article><span class="study-subject-code">{{ course.code }}</span><div><h3>{{ course.name }}</h3><p>{% if course.wrong %}{{ course.wrong }} câu cần ôn lại{% elif course.answered < course.total %}{{ course.total - course.answered }} câu chưa luyện tập{% else %}Bạn đã trả lời đúng tất cả câu ở lần gần nhất. Có thể luyện lại để củng cố.{% endif %}</p></div><a class="btn {{ 'primary' if loop.first }}" href="{{ url_for('practice', subject=course.id, mode='wrong' if course.wrong else ('new' if course.answered < course.total else 'all')) }}">Ôn tập →</a></article>
+        {% else %}{{ empty('Chưa có câu hỏi được công bố. Bạn có thể xem học liệu trong học phần của mình.') }}<a class="btn" href="{{ url_for('courses') }}">Xem học phần</a>{% endfor %}
+        </div>
+    </section>
+    <section class="panel study-activity"><div class="panel-header"><div><h2>Nhịp học 7 ngày</h2><p>Số lần trả lời mỗi ngày · UTC</p></div></div>
+        <div class="study-days">{% for day in study.daily %}<div><span>{{ day.label }}</span><meter min="0" max="{{ study.daily_max }}" value="{{ day.attempts }}" aria-label="{{ day.label }}: {{ day.attempts }} lần trả lời">{{ day.attempts }}</meter><strong>{{ day.attempts }}</strong></div>{% endfor %}</div>
+        {% if not study.attempts %}<p class="study-hint">Hoàn thành câu hỏi đầu tiên để bắt đầu theo dõi quá trình ôn tập.</p>{% endif %}
+    </section>
+</div>
+<section class="panel study-analysis" id="analysis"><div class="panel-header"><div><h2>Phân tích học tập của tôi</h2><p>Tỷ lệ đúng của các lần trả lời đã lưu, theo từng học phần.</p></div><a href="{{ url_for('courses') }}">Tất cả học phần →</a></div>
+    <div class="study-course-grid">{% for course in study.courses %}<article class="study-course"><span class="study-subject-code">{{ course.code }}</span><h3>{{ course.name }}</h3><div class="study-score"><strong>{{ (course.accuracy|string ~ '%') if course.accuracy is not none else '—' }}</strong><span>{{ 'trả lời đúng' if course.accuracy is not none else 'Chưa có dữ liệu' }}</span></div><progress max="100" value="{{ course.accuracy or 0 }}" aria-label="Tỷ lệ đúng {{ course.name }}">{{ course.accuracy or 0 }}%</progress><p>{{ course.correct }}/{{ course.attempts }} lần trả lời đúng · {{ course.answered }}/{{ course.total }} câu đã làm</p><div class="study-actions"><a href="{{ url_for('courses', _anchor='course-' ~ course.id) }}">Học liệu</a><a href="{{ url_for('practice', subject=course.id) }}">Luyện tập →</a></div></article>{% else %}{{ empty('Bạn chưa được đăng ký học phần. Liên hệ bộ phận đào tạo để được hỗ trợ.') }}{% endfor %}</div>
+    <p class="study-hint">Thống kê chỉ tính câu hỏi đang được công bố và phiên bản hiện tại. Tỷ lệ đúng phản ánh kết quả luyện tập, không phải điểm học phần.</p>
+</section>
+<section class="panel study-history"><div class="panel-header"><div><h2>Lịch sử luyện tập gần đây</h2><p>8 lần trả lời gần nhất của bạn · UTC</p></div></div>
+    {% for attempt in study.recent %}<article><span class="study-result {{ 'correct' if attempt.is_correct else 'incorrect' }}">{{ 'Đúng' if attempt.is_correct else 'Cần ôn lại' }}</span><div><strong>{{ attempt.prompt }}</strong><small>{{ attempt.subject_name }} · Đã chọn {{ attempt.selected_answer }}</small></div><time>{{ attempt.created_at }}</time><a href="{{ url_for('practice', subject=attempt.subject_id) }}">Ôn tập →</a></article>{% else %}{{ empty('Chưa có lượt luyện tập. Kết quả sẽ xuất hiện sau khi bạn kiểm tra đáp án.') }}{% endfor %}
+</section>
+{% endblock %}
