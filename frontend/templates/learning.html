@@ -75,7 +75,9 @@
                 <p>{{ 'Luyện tập với câu hỏi đã được kiểm duyệt' if g.user.role=='student' else 'Soạn thảo, kiểm tra và công bố câu hỏi theo học phần' }}</p>
             </div>
             {% if g.user.role != 'student' %}
+                <a class="btn primary" href="{{ url_for('ai_generate_questions') }}">Soạn với OpenAI</a>
                 <a class="btn" href="{{ url_for('edit_record',table='questions') }}">＋ Tạo câu hỏi</a>
+                {% if g.user.role == 'admin' %}<a class="btn" href="{{ url_for('question_reviewers') }}">Phân công kiểm duyệt</a>{% endif %}
             {% endif %}
         </div>
         {% for question in questions %}
@@ -105,12 +107,13 @@
                 {% if g.user.role != 'student' %}
                     <p class="muted">Đáp án: {{ question.answer }} · Nguồn: {{ question.source }}</p>
                     <div class="card-actions">
-                        <a href="{{ url_for('edit_record',table='questions',record_id=question.id) }}">Chỉnh sửa</a>
+                        {% if manager or question.owner_id==g.user.id %}<a href="{{ url_for('edit_record',table='questions',record_id=question.id) }}">Chỉnh sửa</a>{% endif %}
+                        <a href="{{ url_for('review_question',record_id=question.id) }}">Rà soát & kiểm duyệt</a>
                         {% if manager %}
-                            <form method="post" action="{{ url_for('publication',table='questions',record_id=question.id,action='archive' if question.status=='published' else 'publish') }}">
+                            {% if question.status=='published' %}<form method="post" action="{{ url_for('publication',table='questions',record_id=question.id,action='archive') }}">
                                 {{ csrf() }}
-                                <button class="btn" type="submit">{{ 'Lưu trữ' if question.status=='published' else 'Duyệt & công bố' }}</button>
-                            </form>
+                                <button class="btn" type="submit">Lưu trữ</button>
+                            </form>{% endif %}
                         {% endif %}
                     </div>
                 {% endif %}
@@ -120,6 +123,6 @@
         {% endfor %}
     </section>
     <div class="notice">
-        AI hỗ trợ soạn câu hỏi chưa được kết nối. Mọi câu hỏi đều cần được kiểm duyệt trước khi công bố. Quyền truy cập tài liệu không thay thế quyền sử dụng theo bản quyền.
+        OpenAI hỗ trợ soạn và rà soát câu hỏi. Câu hỏi mới hoặc chỉnh sửa luôn được lưu nháp và cần người được phân công kiểm duyệt chuyên môn trước khi công bố.
     </div>
 {% endblock %}

@@ -85,13 +85,14 @@ def password():
 # --- ACCOUNTS ---
 def accounts():
     require('admin')
-    return render_template('accounts.html', title='Tài khoản & phân quyền', active='accounts', users=query('SELECT * FROM users ORDER BY id'),
+    return render_template('accounts.html', title='Tài khoản & phân quyền', active='accounts',
+                           users=query("SELECT u.*,s.code AS student_code FROM users u LEFT JOIN students s ON s.user_id=u.id AND u.role='student' ORDER BY u.id"),
                            logs=query('SELECT a.*,u.full_name FROM audit a LEFT JOIN users u ON u.id=a.user_id ORDER BY a.id DESC LIMIT 100'))
 
 
 def account_edit(record_id=None):
     require('admin')
-    user = one('SELECT * FROM users WHERE id=?', (record_id,)) if record_id else None
+    user = one("SELECT u.*,s.code AS student_code FROM users u LEFT JOIN students s ON s.user_id=u.id AND u.role='student' WHERE u.id=?", (record_id,)) if record_id else None
     if record_id and not user:
         abort(404)
     values = dict(user) if user else {}

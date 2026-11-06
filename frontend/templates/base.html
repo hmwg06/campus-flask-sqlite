@@ -28,7 +28,7 @@
                     <a class="nav-item {{ 'selected' if active == 'accounts' or request.endpoint == 'password' }}" href="{{ url_for('accounts' if g.user.role == 'admin' else 'password') }}"><span class="nav-icon">⚙</span><span>Tài khoản & quyền</span></a>
                 </nav>
                 <div class="sidebar-bottom">
-                    <a href="{{ url_for('password') }}" class="profile"><span class="avatar">{{ g.user.full_name[:1] }}</span><span>{{ g.user.full_name }}<small>{{ roles[g.user.role] }}</small></span></a>
+                    <a href="{{ url_for('password') }}" class="profile"><span class="avatar">{{ g.user.full_name[:1] }}</span><span>{{ g.user.full_name }}<small>{{ roles[g.user.role] }}</small>{% if student_code %}<small>Mã sinh viên: {{ student_code }}</small>{% endif %}</span></a>
                     <form method="post" action="{{ url_for('logout') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button class="logout" type="submit">Đăng xuất ↗</button>

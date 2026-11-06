@@ -55,7 +55,7 @@
             </div>
             {% if table in ['resources','questions'] %}
                 <div class="notice">
-                    Nội dung mới hoặc chỉnh sửa được lưu ở trạng thái nháp. Cán bộ quản lý hoặc quản trị viên kiểm duyệt trước khi công bố.
+                    Nội dung mới hoặc chỉnh sửa được lưu ở trạng thái nháp. {{ 'Người được phân công theo học phần kiểm duyệt chuyên môn trước khi công bố.' if table=='questions' else 'Cán bộ quản lý hoặc quản trị viên kiểm duyệt trước khi công bố.' }}
                 </div>
             {% endif %}
             <div class="form-actions">

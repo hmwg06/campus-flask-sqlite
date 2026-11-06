@@ -44,8 +44,10 @@ def secure_response(response):
 
 def context():
     # Các biến này được đưa vào mọi template, không cần truyền lại ở từng render_template().
+    student = one('SELECT code FROM students WHERE user_id=?', (g.user['id'],)) if g.user and g.user['role'] == 'student' else None
     return dict(roles=ROLES, statuses=STATUS, catalog=CATALOG, manager=g.user and g.user['role'] in MANAGERS,
-                csrf_token=session.get('csrf_token'), today=date.today().strftime('%d/%m/%Y'))
+                csrf_token=session.get('csrf_token'), today=date.today().strftime('%d/%m/%Y'),
+                student_code=student['code'] if student else None)
 
 
 def error_page(error):

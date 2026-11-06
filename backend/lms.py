@@ -4,7 +4,7 @@ import math
 import secrets
 import sqlite3
 from .catalog import CATALOG
-from .common import MANAGERS, accessible, can_edit, options_for, query, require, rows_for
+from .common import MANAGERS, accessible, can_edit, confirm_actor, options_for, query, require, rows_for
 from database.connection import audit, get_db
 from datetime import date
 from flask import abort, current_app, flash, g, redirect, render_template, request, send_file, url_for
@@ -78,10 +78,15 @@ def learning():
 
 
 def publication(table, record_id, action):
-    require(*MANAGERS)
     # URL động vẫn phải giới hạn tên bảng và hành động trước khi ghép tên bảng vào SQL.
     if table not in ('resources', 'questions') or action not in ('publish', 'archive'):
         abort(404)
+    if table == 'questions' and action == 'publish':
+        require('admin', 'staff', 'teacher')
+        accessible(table, record_id)
+        # No legacy URL may bypass the version-bound human review form.
+        return redirect(url_for('review_question', record_id=record_id))
+    require(*MANAGERS)
     accessible(table, record_id)
     status = 'published' if action == 'publish' else 'archived'
     db = get_db()
@@ -216,17 +221,33 @@ def listing(table):
     rows = rows_for(table)
     search = request.args.get('q', '').strip().casefold()
     fields = [f for f in fields_for(table) if f['kind'] not in ('file', 'multi', 'textarea')]
+    student_records = {}
+    if table in ('studies', 'enrollments'):
+        student_records = {r['id']: r for r in rows_for('students')}
+        # Separate code and name in lists; keep the combined label in selection forms.
+        fields.insert(0, dict(name='student_code', label='Mã sinh viên', kind='text'))
+        for field in fields:
+            if field['name'] == 'student_id':
+                field['label'] = 'Họ và tên sinh viên'
     rendered = []
     for row in rows:
         cells = []
         for f in fields:
-            value = row[f['name']]
-            if f['kind'] in ('relation', 'select'):
+            if f['name'] == 'student_code':
+                student = student_records.get(row['student_id'])
+                value = student['code'] if student else None
+            elif f['name'] == 'student_id' and table in ('studies', 'enrollments'):
+                student = student_records.get(row['student_id'])
+                value = student['full_name'] if student else None
+            elif f['kind'] in ('relation', 'select'):
                 # Đổi ID/mã trạng thái thành nhãn dễ đọc; dùng dấu — nếu thiếu nhãn tương ứng.
-                value = f['choices'].get(str(value), '—')
+                value = f['choices'].get(str(row[f['name']]), '—')
+            else:
+                value = row[f['name']]
             cells.append('—' if value is None or value == '' else str(value))
         if search in ' '.join(cells).casefold():
-            rendered.append(dict(id=row['id'], cells=cells))
+            editable = can_edit(table) and not (table == 'questions' and g.user['role'] == 'teacher' and row['owner_id'] != g.user['id'])
+            rendered.append(dict(id=row['id'], cells=cells, editable=editable))
     return render_template('listing.html', title=CATALOG[table]['title'], active=CATALOG[table]['module'],
                            table=table, fields=fields, rows=rendered, editable=can_edit(table), q=request.args.get('q', ''))
 
@@ -236,7 +257,13 @@ def edit_record(table, record_id=None):
         abort(404)
     if not can_edit(table):
         abort(403)
+    if table == 'questions' and request.method == 'POST':
+        # Read and increment the version under the same lock used by human review.
+        get_db().execute('BEGIN IMMEDIATE')
+        confirm_actor()
     existing = accessible(table, record_id) if record_id else None
+    if existing and table == 'questions' and g.user['role'] == 'teacher' and existing['owner_id'] != g.user['id']:
+        abort(403, description='Người kiểm duyệt có thể yêu cầu chỉnh sửa, không sửa câu hỏi của người khác.')
     fields = fields_for(table, existing, for_edit=True)
     values = dict(existing) if existing else {}
     if existing and table == 'resources':

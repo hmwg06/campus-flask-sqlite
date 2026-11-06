@@ -12,7 +12,7 @@ Sinh viên có giao diện ôn tập và phân tích cá nhân. Cán bộ/admin 
 
 ## Chạy trong PyCharm / Windows
 
-Chọn môi trường `.venv` của dự án. Cài `requirements.txt` nếu chưa có Flask, sau đó chạy `app.py` và truy cập **http://127.0.0.1:5000**.
+Chọn môi trường `.venv` của dự án. Cài các thư viện trong `requirements.txt`, sau đó chạy `app.py` và truy cập **http://127.0.0.1:5000**.
 
 Nếu vừa tải mã nguồn từ GitHub, tạo môi trường Python trước (Python 3.10 trở lên):
 
@@ -43,6 +43,9 @@ FlaskProject7/
 │   ├── app.py             # Cấu hình Flask và đăng ký URL
 │   ├── lms.py             # Quản lý học tập và các biểu mẫu LMS
 │   ├── study.py           # Ôn tập và phân tích cá nhân cho sinh viên
+│   ├── ai_client.py       # OpenAI Responses API và kiểm tra đầu ra
+│   ├── ai_questions.py    # Soạn nháp và rà soát câu hỏi bằng AI
+│   ├── question_review.py # Phân công và kiểm duyệt chuyên môn
 │   ├── analytics.py       # Phân tích học tập và xuất CSV
 │   ├── m20.py             # Đăng nhập, tài khoản và vai trò
 │   ├── recovery.py        # Khôi phục mật khẩu sau xác minh
@@ -72,7 +75,7 @@ Ví dụ: `/students` → route trong `backend/app.py` → `backend/lms.py` → 
 2. Cán bộ tạo chương trình và phiên bản, học phần, khung chương trình, lớp học; phân công giảng viên.
 3. Cán bộ tạo hồ sơ sinh viên với mã duy nhất, liên kết tài khoản, thêm một hoặc nhiều chương trình theo học, đăng ký lớp học phần. Đổi trạng thái cần căn cứ thay đổi và có nhật ký.
 4. Cán bộ nhập điểm 0–10 và công bố kết quả. Sinh viên chỉ xem điểm chính thức của mình; giảng viên xem học viên và kết quả trong lớp mình phụ trách.
-5. Giảng viên tạo học liệu/câu hỏi thuộc học phần được phân công. Học liệu hỗ trợ tệp hoặc liên kết, tác giả/nguồn/phiên bản/quyền sử dụng, một tài liệu gắn nhiều học phần. Cán bộ/Admin duyệt và công bố hoặc lưu trữ. Sửa nội dung sẽ đưa về nháp. Sinh viên chỉ truy cập nội dung đã công bố của lớp đã đăng ký; có luyện câu hỏi và phản hồi đúng/sai.
+5. Giảng viên tạo học liệu/câu hỏi thuộc học phần được phân công. Học liệu hỗ trợ tệp hoặc liên kết, tác giả/nguồn/phiên bản/quyền sử dụng, một tài liệu gắn nhiều học phần. Cán bộ/Admin công bố học liệu hoặc lưu trữ nội dung. Câu hỏi cần người được phân công kiểm duyệt học phần, khác người tạo, xác nhận trước khi công bố. Sửa nội dung sẽ đưa về nháp. Sinh viên chỉ truy cập nội dung đã công bố của lớp đã đăng ký; có luyện câu hỏi và phản hồi đúng/sai.
 6. Cán bộ/Admin xem báo cáo lớp, điểm trung bình từ kết quả công bố, lượt tải/mở học liệu, thời gian từ tạo đến lần kiểm duyệt gần nhất; xuất CSV. Nhật ký chi tiết toàn hệ thống chỉ dành cho Admin.
 
 ## Ôn tập và phân tích cá nhân cho sinh viên
@@ -82,6 +85,30 @@ Ví dụ: `/students` → route trong `backend/app.py` → `backend/lms.py` → 
 - Mỗi câu trả lời hợp lệ được lưu cùng phiên bản câu hỏi. Tỷ lệ đúng tính trên mọi lần trả lời của phiên bản hiện tại; danh sách cần ôn lại dùng kết quả gần nhất của từng câu. Trả lời đúng lần tiếp theo sẽ đưa câu đó ra khỏi danh sách cần ôn lại.
 - Chỉ thống kê câu hỏi hiện được công bố thuộc học phần sinh viên có quyền truy cập. Khi câu hỏi đổi phiên bản, lịch sử cũ vẫn được lưu nhưng không đưa vào thống kê hiện tại. Chưa làm bài sẽ hiện **Chưa có dữ liệu**, không coi là kết quả 0%.
 - Thời gian lịch sử và hoạt động 7 ngày dùng UTC. Tỷ lệ đúng là kết quả luyện tập, không phải điểm học phần hay chứng nhận hoàn thành.
+
+## OpenAI và kiểm duyệt câu hỏi
+
+Ứng dụng dùng [Responses API với Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs). Khóa chỉ đọc từ biến môi trường trên máy chủ, không đưa vào HTML hoặc Git. Model mặc định là `gpt-4.1-mini`; có thể đổi bằng `OPENAI_MODEL` sang model hỗ trợ Responses API và Structured Outputs.
+
+Trong PyCharm, mở **Run → Edit Configurations → cấu hình chạy app.py → Environment variables** và thêm:
+
+```text
+OPENAI_API_KEY=<khóa API của bạn>
+OPENAI_MODEL=gpt-4.1-mini
+```
+
+Lưu cấu hình riêng trên máy, không chia sẻ cấu hình chứa khóa. Dừng và chạy lại `app.py` sau khi thêm biến môi trường. Không cần sửa mã nguồn. Ứng dụng không tự đọc file `.env`. Cần khóa OpenAI API có quyền gọi model và hạn mức sử dụng; khi chưa cấu hình khóa, chức năng AI bị vô hiệu hóa, các chức năng LMS khác vẫn dùng được.
+
+1. Admin vào **Không gian học tập → Phân công kiểm duyệt**, chọn người có chuyên môn theo từng học phần. Admin cũng cần được phân công nếu trực tiếp duyệt; không ai tự duyệt câu mình tạo.
+2. Giảng viên/cán bộ/admin chọn **Soạn với OpenAI**, nhập học phần, chủ đề, độ khó, nguồn và nội dung tham khảo. Mỗi yêu cầu tối đa 10 câu; nội dung tham khảo từ 20 đến 20.000 ký tự.
+3. Đầu ra hợp lệ được lưu toàn bộ ở trạng thái **Nháp**, kèm model, tài liệu nguồn và giải thích. Phản hồi thiếu, sai cấu trúc hoặc lỗi API không tạo câu hỏi. Giá trị trạng thái/kiểm duyệt không lấy từ AI hay form người dùng.
+4. Mở **Rà soát & kiểm duyệt** để yêu cầu AI nêu vấn đề về kiến thức, đáp án, diễn đạt và căn cứ nguồn. Nhận xét AI là gợi ý cần xác minh; không tự sửa hoặc công bố câu hỏi.
+5. Người được phân công đọc nội dung, nguồn và nhận xét, ghi nhận xét chuyên môn, xác nhận đã kiểm tra rồi **Duyệt chuyên môn & công bố** hoặc **Yêu cầu chỉnh sửa**. Quyết định lưu người duyệt, thời gian và phiên bản.
+6. Mỗi lần sửa câu hỏi tăng phiên bản, đưa về nháp và yêu cầu duyệt lại. Quyết định cho phiên bản cũ bị từ chối; kết quả AI trả về khi nội dung đã thay đổi không được lưu. Nhận xét AI đã lưu cho bản cũ được ghi rõ trên giao diện.
+
+Chỉ nội dung câu hỏi, chủ đề/học phần và tài liệu tham khảo được gửi tới OpenAI; không gửi hồ sơ, điểm hoặc tài khoản sinh viên. Lời gọi đặt `store=False`; điều này không thay thế chính sách xử lý dữ liệu của nhà cung cấp. Chỉ gửi tài liệu được phép sử dụng. Giới hạn mặc định 15 giây giữa các yêu cầu AI của một tài khoản, thời gian chờ API 45 giây và không tự thử lại.
+
+Các bảng AI và kiểm duyệt được thêm tự động khi khởi động; câu hỏi đã công bố trước khi nâng cấp giữ trạng thái hiện có. Câu hỏi mới và câu đã chỉnh sửa phải qua quy trình duyệt ở trên. Phân công chuyên môn do admin xác minh, ứng dụng không tự đánh giá bằng cấp của người duyệt.
 
 ## Quên mật khẩu
 
@@ -99,7 +126,7 @@ Các bảng lịch sử luyện tập và khôi phục mật khẩu được th�
 |---|---|
 | Admin | Toàn hệ thống, cấp/khóa tài khoản, đổi vai trò, đặt lại mật khẩu và xem nhật ký |
 | Cán bộ | Hồ sơ, chương trình, lớp, đăng ký, điểm, kiểm duyệt và báo cáo |
-| Giảng viên | Sinh viên trong lớp được phân công; quản lý học liệu/câu hỏi do mình tạo và thuộc học phần phụ trách |
+| Giảng viên | Sinh viên trong lớp được phân công; quản lý học liệu/câu hỏi do mình tạo và thuộc học phần phụ trách; xem và kiểm duyệt câu hỏi của học phần được admin phân công |
 | Sinh viên | Hồ sơ/kết quả của mình; lớp đã đăng ký và nội dung đã công bố của các học phần đó |
 
 Hồ sơ cá nhân dùng mã duy nhất, các lần theo học tách riêng theo chương trình/phiên bản. Đây là chính sách mặc định cho phiên bản này. Cán bộ cấp mã thủ công, hệ thống kiểm tra trùng. Không sao chép dữ liệu tài chính/luận văn vào hồ sơ.
@@ -117,7 +144,7 @@ Hồ sơ cá nhân dùng mã duy nhất, các lần theo học tách riêng theo
 
 ## Phạm vi phiên bản hiện tại
 
-Ứng dụng lưu dữ liệu thật bằng SQLite và cung cấp các luồng được mô tả ở trên. Chưa tích hợp SSO, gửi email tự động, API AI, thi trực tuyến hoặc đồng bộ với LMS bên ngoài.
+Ứng dụng lưu dữ liệu thật bằng SQLite và hỗ trợ OpenAI khi được cấu hình API key. Chưa tích hợp SSO, gửi email tự động, thi trực tuyến hoặc đồng bộ với LMS bên ngoài.
 
 Lưu lịch sử chỉnh sửa trong nhật ký; chưa có giao diện khôi phục phiên bản. Giới hạn tải lên 16 MB cho toàn bộ request; các tệp được tải xuống dưới dạng đính kèm. Lượt truy cập học liệu ghi nhận việc mở/tải, không đại diện thời lượng học hay hoàn thành khóa học. Không xóa dữ liệu lịch sử qua giao diện; dùng trạng thái bảo lưu/thôi học/lưu trữ/khóa.
 

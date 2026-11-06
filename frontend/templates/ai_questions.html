@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import heading,csrf with context %}
+{% block content %}
+{% call heading('NGÂN HÀNG CÂU HỎI / AI','Soạn câu hỏi với OpenAI','Câu hỏi được lưu nháp. Người kiểm duyệt chuyên môn quyết định việc công bố.') %}
+    <a class="btn" href="{{ url_for('learning', _anchor='questions') }}">Ngân hàng câu hỏi</a>
+{% endcall %}
+{% if not ai_ready %}<div class="notice">Chưa kết nối OpenAI. Quản trị viên cần cấu hình OPENAI_API_KEY trên máy chủ và khởi động lại ứng dụng.</div>{% endif %}
+<section class="panel form-panel">
+    <form method="post" data-ai-request>{{ csrf() }}
+        <div class="form-grid">
+            <label>Học phần *<select name="subject_id" required><option value="">Chọn học phần</option>{% for key,label in subjects.items() %}<option value="{{ key }}" {{ 'selected' if values.get('subject_id')==key }}>{{ label }}</option>{% endfor %}</select></label>
+            <label>Chủ đề / mục tiêu kiến thức *<input name="topic" required maxlength="300" value="{{ values.get('topic','') }}" placeholder="Ví dụ: Truy vấn SELECT và điều kiện WHERE"></label>
+            <label>Độ khó<select name="difficulty" required>{% for key,label in [('basic','Cơ bản'),('intermediate','Vận dụng'),('advanced','Nâng cao')] %}<option value="{{ key }}" {{ 'selected' if values.get('difficulty')==key }}>{{ label }}</option>{% endfor %}</select></label>
+            <label>Số câu (1–10)<input type="number" name="count" required min="1" max="10" value="{{ values.get('count','3') }}"></label>
+            <label class="wide">Tên nguồn tham khảo *<input name="source" required maxlength="300" value="{{ values.get('source','') }}" placeholder="Tên bài giảng, giáo trình và phần được sử dụng"></label>
+            <label class="wide">Nội dung tham khảo *<textarea name="reference" rows="10" required minlength="20" maxlength="20000" placeholder="Dán nội dung được phép sử dụng để AI dựa vào đó soạn câu hỏi.">{{ values.get('reference','') }}</textarea><small>Từ 20 đến 20.000 ký tự. Nội dung này được gửi tới OpenAI; không nhập thông tin riêng tư của sinh viên.</small></label>
+        </div>
+        <div class="notice">AI đề xuất câu hỏi, 4 phương án, đáp án và giải thích. Bạn cần đọc lại bản nháp; kết quả AI không tự động được công bố. Model đang cấu hình: {{ model }}.</div>
+        <div class="form-actions"><a class="btn" href="{{ url_for('learning', _anchor='questions') }}">Quay lại</a><button class="btn primary" type="submit" {{ 'disabled' if not ai_ready or not subjects }}>Tạo và lưu bản nháp</button></div>
+        <p class="ai-request-status" role="status" hidden>OpenAI đang xử lý. Vui lòng chờ, không gửi lại biểu mẫu.</p>
+    </form>
+</section>
+{% endblock %}

@@ -3,6 +3,7 @@
 {% block content %}
     {{ heading('M20 / TÀI KHOẢN',title,'Thay đổi quyền và khóa tài khoản có hiệu lực ngay ở yêu cầu tiếp theo.') }}
     <section class="panel form-panel">
+        {% if existing and existing.student_code %}<p>Mã sinh viên: <strong>{{ existing.student_code }}</strong></p>{% endif %}
         <form method="post">
             {{ csrf() }}
             <div class="form-grid">

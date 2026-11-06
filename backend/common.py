@@ -23,6 +23,14 @@ def require(*roles):
         abort(403)
 
 
+def confirm_actor():
+    """Recheck identity after acquiring a write lock or waiting for an external call."""
+    user = one('''SELECT u.role,u.active,coalesce(v.generation,0) AS generation FROM users u
+                  LEFT JOIN session_versions v ON v.user_id=u.id WHERE u.id=?''', (g.user['id'],))
+    if not user or not user['active'] or user['role'] != g.user['role'] or user['generation'] != g.user['auth_generation']:
+        abort(403, description='Quyền truy cập đã thay đổi. Thao tác chưa được lưu.')
+
+
 def scope(table):
     """Return an SQL predicate + parameters against alias t; all table names are allowlisted."""
     # Trả về (điều kiện WHERE, danh sách tham số); t là tên viết tắt của bảng trong SQL.
@@ -59,7 +67,8 @@ def scope(table):
             # Sinh viên chỉ thấy nội dung đã công bố và thuộc học phần mình đăng ký.
             return f"t.status='published' AND {enroll}", [uid]
         if table == 'questions':
-            return 't.owner_id=? AND t.subject_id IN (SELECT subject_id FROM classes WHERE teacher_id=?)', [uid, uid]
+            return ('(t.owner_id=? AND t.subject_id IN (SELECT subject_id FROM classes WHERE teacher_id=?)) '
+                    'OR EXISTS (SELECT 1 FROM question_reviewers qr WHERE qr.subject_id=t.subject_id AND qr.user_id=?)'), [uid, uid, uid]
         # Giảng viên chỉ thấy học liệu do mình tạo và có TẤT CẢ học phần thuộc phạm vi phụ trách.
         return ('t.owner_id=? AND EXISTS (SELECT 1 FROM resource_subjects rs WHERE rs.resource_id=t.id) '
                 'AND NOT EXISTS (SELECT 1 FROM resource_subjects rs WHERE rs.resource_id=t.id '

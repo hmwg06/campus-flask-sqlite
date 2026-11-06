@@ -6,7 +6,7 @@ from pathlib import Path
 from flask import Flask
 
 from database import connection as db
-from backend import hooks, lms, analytics, m20, study, recovery
+from backend import hooks, lms, analytics, m20, study, recovery, ai_questions, question_review
 
 
 def create_app(config=None):
@@ -41,6 +41,9 @@ def create_app(config=None):
         MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # Giới hạn tổng dung lượng một request, tính bằng byte.
         # HttpOnly chặn JS đọc cookie; SameSite=Lax hạn chế gửi cookie trong yêu cầu từ site khác.
         SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
+        OPENAI_API_KEY=os.environ.get('OPENAI_API_KEY', ''),
+        OPENAI_MODEL=os.environ.get('OPENAI_MODEL', 'gpt-4.1-mini'),
+        AI_MIN_INTERVAL_SECONDS=15,
     )
     if config:
         # Cho phép cấu hình riêng cho từng môi trường triển khai.
@@ -130,6 +133,22 @@ def create_app(config=None):
     @app.route('/practice')
     def practice():
         return study.practice()
+
+    @app.route('/questions/ai', methods=['GET', 'POST'])
+    def ai_generate_questions():
+        return ai_questions.generate()
+
+    @app.route('/questions/<int:record_id>/ai-review', methods=['POST'])
+    def ai_review_question(record_id):
+        return ai_questions.review(record_id)
+
+    @app.route('/questions/<int:record_id>/review', methods=['GET', 'POST'])
+    def review_question(record_id):
+        return question_review.review(record_id)
+
+    @app.route('/question-reviewers', methods=['GET', 'POST'])
+    def question_reviewers():
+        return question_review.assignments()
 
     @app.route('/<table>/<int:record_id>/<action>', methods=['POST'])
     def publication(table, record_id, action):

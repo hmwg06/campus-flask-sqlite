@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% from 'macros.html' import empty with context %}
 {% block content %}
-<div class="study-heading"><div><span class="eyebrow">KHÔNG GIAN HỌC TẬP CỦA BẠN</span><h1>Ôn tập hôm nay</h1><p>Chào {{ g.user.full_name }}. Chọn một học phần và bắt đầu từ điều bạn muốn hiểu rõ hơn.</p></div><a class="btn primary" href="{{ url_for('practice') }}">Bắt đầu luyện tập →</a></div>
+<div class="study-heading"><div><span class="eyebrow">KHÔNG GIAN HỌC TẬP CỦA BẠN</span><h1>Ôn tập hôm nay</h1>{% if student_code %}<p>Mã sinh viên: <strong>{{ student_code }}</strong></p>{% endif %}<p>Chào {{ g.user.full_name }}. Chọn một học phần và bắt đầu từ điều bạn muốn hiểu rõ hơn.</p></div><a class="btn primary" href="{{ url_for('practice') }}">Bắt đầu luyện tập →</a></div>
 <div class="study-stats">
     <article><span>Học phần đang học</span><strong>{{ study.courses|length }}</strong><small>Trong phạm vi đăng ký của bạn</small></article>
     <article><span>Câu đã luyện tập</span><strong>{{ study.answered }}<small> / {{ study.questions|length }}</small></strong><small>Tính theo phiên bản câu hỏi hiện tại</small></article>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% from 'macros.html' import heading,badge,empty with context %}
 {% block content %}
-    {% call heading('LMS / HỒ SƠ SINH VIÊN',student.full_name,student.code ~ ' · ' ~ student.cohort) %}
+    {% call heading('LMS / HỒ SƠ SINH VIÊN',student.full_name,'Mã sinh viên: ' ~ student.code ~ ' · ' ~ student.cohort) %}
         {% if manager %}
             <a class="btn primary" href="{{ url_for('edit_record',table='students',record_id=student.id) }}">Chỉnh sửa hồ sơ</a>
         {% endif %}
@@ -10,6 +10,7 @@
         <span class="avatar large">{{ student.full_name[:1] }}</span>
         <div>
             <h2>{{ student.full_name }}</h2>
+            <p>Mã sinh viên: <strong>{{ student.code }}</strong></p>
             <p>{{ student.email or 'Chưa có email' }}</p>
             {{ badge(student.status) }}
         </div>

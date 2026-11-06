@@ -20,6 +20,7 @@
                     <tr>
                         <th>Người dùng</th>
                         <th>Tên đăng nhập</th>
+                        <th>Mã sinh viên</th>
                         <th>Vai trò</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
@@ -30,6 +31,7 @@
                         <tr>
                             <td><strong>{{ user.full_name }}</strong></td>
                             <td>{{ user.username }}</td>
+                            <td>{{ user.student_code or '—' }}</td>
                             <td>{{ roles[user.role] }}</td>
                             <td><span class="badge {{ 'published' if user.active else 'archived' }}">{{ 'Hoạt động' if user.active else 'Đã khóa' }}</span></td>
                             <td><a href="{{ url_for('account_edit',record_id=user.id) }}">Chỉnh sửa</a></td>

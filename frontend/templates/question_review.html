@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import heading,csrf,badge,empty with context %}
+{% block content %}
+{% call heading('NGÂN HÀNG CÂU HỎI / KIỂM DUYỆT','Rà soát & kiểm duyệt',subject.name ~ ' · Phiên bản ' ~ question.version) %}<a class="btn" href="{{ url_for('learning', _anchor='questions') }}">Ngân hàng câu hỏi</a>{% endcall %}
+<section class="panel ai-question-content">
+    <div class="question-heading">{{ badge(question.status) }}<span>{{ 'AI hỗ trợ soạn' if metadata else 'Biên soạn thủ công' }}</span></div>
+    <h2>{{ question.prompt }}</h2>
+    <dl class="ai-answer-list">{% for key in ['a','b','c','d'] %}<dt>{{ key|upper }}</dt><dd>{{ question['choice_' ~ key] }}</dd>{% endfor %}</dl>
+    <p><strong>Đáp án đang lưu: {{ question.answer }}</strong> · Nguồn: {{ question.source }}</p>
+    {% if may_edit %}<a class="btn" href="{{ url_for('edit_record', table='questions', record_id=question.id) }}">Chỉnh sửa bản nháp</a>{% endif %}
+    {% if metadata %}<details class="ai-details"><summary>Giải thích và tài liệu AI đã sử dụng · v{{ metadata.question_version }}</summary><p>{{ metadata.explanation }}</p><p class="muted">Đề xuất AI lúc tạo, chưa phải kết luận chuyên môn. Model: {{ metadata.model }}.</p><pre>{{ metadata.reference_text }}</pre></details>{% endif %}
+</section>
+<section class="panel form-panel"><h2>AI hỗ trợ rà soát</h2><p>Phát hiện vấn đề cần kiểm tra. Nhận xét AI không thay đổi nội dung hoặc trạng thái công bố.</p>
+    {% if not ai_ready %}<div class="notice">Chưa cấu hình OpenAI trên máy chủ. Bạn vẫn có thể kiểm duyệt thủ công.</div>{% endif %}
+    <form method="post" action="{{ url_for('ai_review_question', record_id=question.id) }}" data-ai-request>{{ csrf() }}<input type="hidden" name="version" value="{{ question.version }}"><label>Tài liệu đối chiếu (gửi tới OpenAI)<textarea name="reference" rows="5" maxlength="20000">{{ metadata.reference_text if metadata else '' }}</textarea></label><button class="btn" type="submit" {{ 'disabled' if not ai_ready }}>Rà soát bằng OpenAI</button><p class="ai-request-status" role="status" hidden>OpenAI đang rà soát. Vui lòng chờ.</p></form>
+    {% for analysis in analyses %}<article class="ai-analysis"><h3>Nhận xét AI · phiên bản {{ analysis.question_version }}{% if analysis.question_version != question.version %} · Không còn áp dụng cho bản hiện tại{% endif %}</h3><p>{{ analysis.result.summary }}</p><small>{{ analysis.model }} · {{ analysis.full_name }} · {{ analysis.created_at }} UTC</small>
+        {% for issue in analysis.result.issues %}<div class="ai-issue {{ issue.severity }}"><strong>{{ 'Cần chú ý' if issue.severity=='important' else 'Cần kiểm tra' }}</strong><p>{{ issue.detail }}</p><p><strong>Gợi ý:</strong> {{ issue.suggestion }}</p></div>{% else %}<p>AI chưa phát hiện vấn đề trong lần rà soát này. Người kiểm duyệt vẫn cần xác minh tính đúng đắn.</p>{% endfor %}
+    </article>{% else %}<p class="ai-empty">Chưa có kết quả rà soát AI.</p>{% endfor %}
+</section>
+<section class="panel form-panel"><h2>Quyết định của người kiểm duyệt</h2>
+    {% if may_review %}<form method="post">{{ csrf() }}<input type="hidden" name="version" value="{{ question.version }}"><label>Nhận xét chuyên môn / cách xử lý các vấn đề đã nêu *<textarea name="notes" rows="4" minlength="10" maxlength="2000" required></textarea></label><label class="verify-identity"><input type="checkbox" name="confirmed" value="1" required> Tôi đã kiểm tra nội dung, đáp án, nguồn và các nhận xét AI của phiên bản này.</label><div class="form-actions"><button class="btn" name="decision" value="revise" type="submit">Yêu cầu chỉnh sửa</button><button class="btn primary" name="decision" value="approve" type="submit">Duyệt chuyên môn & công bố</button></div></form>
+    {% else %}<p>{{ 'Người tạo câu hỏi không tự duyệt câu của mình.' if question.owner_id==g.user.id else 'Bạn chưa được phân công kiểm duyệt học phần này.' }}</p>{% endif %}
+    <p class="ai-reviewer-list">Người được phân công: {% for reviewer in reviewers %}{{ reviewer.full_name }}{{ ', ' if not loop.last }}{% else %}Chưa có. Admin cần phân công người có chuyên môn.{% endfor %}</p>
+    {% if g.user.role=='admin' %}<a href="{{ url_for('question_reviewers') }}">Quản lý phân công kiểm duyệt →</a>{% endif %}
+</section>
+<section class="panel"><div class="panel-header"><h2>Lịch sử kiểm duyệt</h2></div>{% for item in history %}<details class="history"><summary>{{ item.created_at }} UTC · {{ item.full_name }} · v{{ item.question_version }} · {{ 'Đã duyệt & công bố' if item.decision=='approve' else 'Yêu cầu chỉnh sửa' }}</summary><p>{{ item.notes }}</p></details>{% else %}{{ empty('Chưa có quyết định kiểm duyệt chuyên môn.') }}{% endfor %}</section>
+{% endblock %}

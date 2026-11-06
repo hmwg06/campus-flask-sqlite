@@ -78,3 +78,29 @@ CREATE TABLE IF NOT EXISTS lecturers (
  academic_title TEXT NOT NULL DEFAULT '', department TEXT NOT NULL, position TEXT NOT NULL DEFAULT '',
  source_url TEXT NOT NULL, profile_url TEXT NOT NULL DEFAULT '', retrieved_date TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS question_reviewers (
+ subject_id INTEGER NOT NULL REFERENCES subjects(id), user_id INTEGER NOT NULL REFERENCES users(id),
+ assigned_by INTEGER NOT NULL REFERENCES users(id), assigned_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY(subject_id,user_id)
+);
+CREATE TABLE IF NOT EXISTS question_ai_metadata (
+ question_id INTEGER PRIMARY KEY REFERENCES questions(id), question_version INTEGER NOT NULL,
+ model TEXT NOT NULL, reference_text TEXT NOT NULL, instructions TEXT NOT NULL,
+ explanation TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS question_ai_reviews (
+ id INTEGER PRIMARY KEY, question_id INTEGER NOT NULL REFERENCES questions(id), question_version INTEGER NOT NULL,
+ user_id INTEGER NOT NULL REFERENCES users(id), model TEXT NOT NULL,
+ reference_text TEXT NOT NULL, result_json TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS question_ai_review_idx ON question_ai_reviews(question_id,question_version,id);
+CREATE TABLE IF NOT EXISTS question_reviews (
+ id INTEGER PRIMARY KEY, question_id INTEGER NOT NULL REFERENCES questions(id), question_version INTEGER NOT NULL,
+ reviewer_id INTEGER NOT NULL REFERENCES users(id), decision TEXT NOT NULL CHECK(decision IN ('approve','revise')),
+ notes TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS ai_requests (
+ id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
+ operation TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ai_request_user_idx ON ai_requests(user_id,created_at);
