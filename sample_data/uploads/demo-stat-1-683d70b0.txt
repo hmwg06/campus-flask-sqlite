@@ -1,0 +1,26 @@
+DỮ LIỆU MINH HỌA — KHÔNG PHẢI TÀI LIỆU CHÍNH THỨC
+
+Thống kê ứng dụng
+Đề cương và hướng dẫn học
+
+Thống kê mô tả, xác suất và phân tích số liệu.
+
+Mục tiêu: đọc tài liệu, luyện tập câu hỏi và theo dõi kết quả cá nhân.
+
+Nội dung ôn tập:
+1. Trung bình của 2, 4 và 6 bằng bao nhiêu?
+Gợi ý: 4.
+2. Trung vị của 1, 3 và 9 là bao nhiêu?
+Gợi ý: 3.
+3. Xác suất của một biến cố nằm trong khoảng nào?
+Gợi ý: Từ 0 đến 1.
+4. Độ lệch chuẩn mô tả đặc điểm nào?
+Gợi ý: Mức độ phân tán.
+5. Biểu đồ nào phù hợp để so sánh số lượng giữa các nhóm?
+Gợi ý: Biểu đồ cột.
+6. Mốt của dãy 1, 2, 2, 3 là bao nhiêu?
+Gợi ý: 2.
+
+Hoạt động: làm ít nhất 4 câu, xem lại câu sai, sau đó thử lại.
+Nguồn: Bộ dữ liệu trình diễn M10 do hệ thống tạo.
+Quyền sử dụng: chỉ dùng minh họa chức năng.

@@ -1,0 +1,26 @@
+DỮ LIỆU MINH HỌA — KHÔNG PHẢI TÀI LIỆU CHÍNH THỨC
+
+Cơ sở dữ liệu
+Bài giảng đang biên soạn
+
+Mô hình quan hệ, khóa, truy vấn SQL và giao dịch.
+
+Mục tiêu: đọc tài liệu, luyện tập câu hỏi và theo dõi kết quả cá nhân.
+
+Nội dung ôn tập:
+1. Câu lệnh nào dùng để truy vấn dữ liệu?
+Gợi ý: SELECT.
+2. Khóa chính dùng để làm gì?
+Gợi ý: Định danh duy nhất mỗi bản ghi.
+3. Mệnh đề nào lọc các dòng trước khi nhóm?
+Gợi ý: WHERE.
+4. Phép JOIN nào giữ mọi dòng của bảng bên trái?
+Gợi ý: LEFT JOIN.
+5. Lệnh nào xác nhận một giao dịch?
+Gợi ý: COMMIT.
+6. Khóa ngoại chủ yếu hỗ trợ điều gì?
+Gợi ý: Toàn vẹn tham chiếu.
+
+Hoạt động: làm ít nhất 4 câu, xem lại câu sai, sau đó thử lại.
+Nguồn: Bộ dữ liệu trình diễn M10 do hệ thống tạo.
+Quyền sử dụng: chỉ dùng minh họa chức năng.

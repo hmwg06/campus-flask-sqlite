@@ -29,6 +29,19 @@ Repository chứa mã nguồn ứng dụng. Database, tài khoản hiện có, t
 
 Lần đầu mở website sẽ có màn hình tạo tài khoản quản trị. Không có mật khẩu mặc định.
 
+## Bản trình diễn có sẵn dữ liệu
+
+Repository có bộ dữ liệu trong `sample_data/data.json` và 24 tệp học liệu trong `sample_data/uploads/`. Bộ dữ liệu gồm 24 sinh viên, 6 lớp/học phần, 25 học liệu, 42 câu hỏi và lịch sử luyện tập. Xem danh sách tài khoản và cách trình diễn trong [TAI-KHOAN.md](TAI-KHOAN.md).
+
+Trên bản tải mới, sau khi cài thư viện và **trước khi chạy ứng dụng lần đầu**, chạy:
+
+```powershell
+.\.venv\Scripts\python.exe load_sample_data.py
+.\.venv\Scripts\python.exe app.py
+```
+
+Bạn tự đặt mật khẩu chung cho các tài khoản trình diễn khi được hỏi; công cụ tạo hash mới trên máy. Không có mật khẩu/hash đăng nhập, API key hay khóa phiên từ máy gốc trong bộ dữ liệu. Công cụ từ chối nếu database đã tồn tại; không ghi đè dữ liệu đang dùng. Khi chạy tự động có thể đặt biến môi trường `LMS_SAMPLE_PASSWORD` thay cho nhập tương tác. Bộ dữ liệu giả lập chỉ phục vụ trình diễn, nhận xét AI mẫu được ghi rõ là mô phỏng.
+
 ## Cấu trúc code
 
 Dự án chia thành **frontend**, **backend** và **database**. Chạy bằng `app.py` như trước.
@@ -150,7 +163,7 @@ Lưu lịch sử chỉnh sửa trong nhật ký; chưa có giao diện khôi ph�
 
 ## Cập nhật lên GitHub
 
-Bộ mã nguồn gồm `app.py`, `backend/`, `database/`, `frontend/`, `requirements.txt`, `README.md` và `.gitignore`. Môi trường `.venv/`, cấu hình IDE, bộ nhớ đệm, dữ liệu trong `instance/` và gói bàn giao `.release/` được loại khỏi Git.
+Bộ mã nguồn gồm `app.py`, `backend/`, `database/`, `frontend/`, `requirements.txt`, `README.md` và `.gitignore`; kèm `sample_data/`, `load_sample_data.py` và `TAI-KHOAN.md` để dựng bản trình diễn. Môi trường `.venv/`, cấu hình IDE, bộ nhớ đệm, dữ liệu riêng trong `instance/` và gói bàn giao `.release/` được loại khỏi Git.
 
 Để cập nhật repository hiện có và ghi nhận cả những file cũ đã xóa:
 
